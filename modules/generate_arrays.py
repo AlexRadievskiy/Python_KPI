@@ -3,17 +3,19 @@ import numpy as np
 class ArrayGenerator:
     @staticmethod
     def random_arrays():
+        # Код для генерації випадкових масивів
         print("Генерація випадкових масивів:")
-        # Генерація випадкового масиву розміром 5x5
-        random_array = np.random.rand(5, 5)
-        print(random_array)
+        # Пример генерации массива
+        arr = np.random.randint(0, 100, 10)
+        print(arr)
 
     @staticmethod
     def non_random_arrays():
+        # Код для генерації невипадкових масивів
         print("Генерація невипадкових масивів:")
-        # Генерація масиву з послідовними числами
-        sequence_array = np.arange(10)
-        print(sequence_array)
+        # Пример генерации массива
+        arr = np.arange(10)
+        print(arr)
 
     @staticmethod
     def run():

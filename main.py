@@ -1,5 +1,8 @@
 import sys
-from modules import generate_arrays, access_elements, arithmetic_operations, statistics
+from modules.generate_arrays import ArrayGenerator
+from modules.access_elements import ElementAccessor
+from modules.arithmetic_operations import ArithmeticOperations
+from modules.statistics import Statistics
 
 def main():
     while True:
@@ -14,15 +17,15 @@ def main():
             break
 
         if action == "generate":
-            generate_arrays.run()
+            ArrayGenerator.run()
         elif action == "access":
-            access_elements.run()
+            ElementAccessor.run()
         elif action == "arithmetic":
-            arithmetic_operations.run()
+            ArithmeticOperations.run()
         elif action == "stats":
-            statistics.Statistics.run()
+            Statistics.run()
         else:
-            print("Невідома дія. Виберіть з: generate, access, arithmetic, stats, exit")
+            print("Невідома дія. Виберіть з: generate, access, arithmetic, stats")
 
 
 if __name__ == "__main__":
