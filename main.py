@@ -11,11 +11,11 @@ def main():
     # action = sys.argv[1]
 
     if action == "generate":
-        generate_arrays.run()
+        Generate.arrays.run()
     elif action == "access":
-        access_elements.run()
+        Access.elements.run()
     elif action == "arithmetic":
-        arithmetic_operations.run()
+        Arithmetic.operations.run()
     elif action == "stats":
         statistics.Statistics.run()
     else:
