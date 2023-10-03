@@ -1,32 +1,34 @@
-import sys
-from modules.generate_arrays import ArrayGenerator
-from modules.access_elements import ElementAccessor
-from modules.arithmetic_operations import ArithmeticOperations
-from modules.statistics import Statistics
+import pandas as pd
+from scipy import stats
 
-def main():
-    while True:
-        if len(sys.argv) < 2:
-            action = input("Вкажіть дію: generate, access, arithmetic, stats, exit: ")
-        else:
-            action = sys.argv[1]
-            sys.argv.pop(1)  # видаляємо вже оброблений аргумент
+# Завантаження даних
+data = pd.read_csv('data/Budget.csv')
 
-        if action == "exit":
-            print("Завершення програми.")
-            break
+# 1. Середній вік та середньоквадратичне відхилення найстаршого в сім’ї
+max_age = data['age'].max()
+max_age_group = data[data['age'] == max_age]
+mean_age = max_age_group['age'].mean()
+std_age = max_age_group['age'].std()
 
-        if action == "generate":
-            ArrayGenerator.run()
-        elif action == "access":
-            ElementAccessor.run()
-        elif action == "arithmetic":
-            ArithmeticOperations.run()
-        elif action == "stats":
-            Statistics.run()
-        else:
-            print("Невідома дія. Виберіть з: generate, access, arithmetic, stats")
+print(f"Середній вік: {mean_age}, Середньоквадратичне відхилення: {std_age}")
 
+# 2. Перевірка нормальності розподілу витрат на одежу
+w, p_value = stats.shapiro(data['wcloth'])
+if p_value > 0.05:
+    print("Витрати на одежу розподілені нормально")
+else:
+    print("Витрати на одежу не розподілені нормально")
 
-if __name__ == "__main__":
-    main()
+# 3. Зв’язок між кількістю дітей і витратами на алкоголь
+correlation, _ = stats.pearsonr(data['children'], data['walc'])
+print(f"Кореляція між кількістю дітей і витратами на алкоголь: {correlation}")
+
+# 4. Порівняння витрат на їжу в сім’ях з однією та двома дітьми
+group_1 = data[data['children'] == 1]['wfood']
+group_2 = data[data['children'] == 2]['wfood']
+
+t_stat, p_val = stats.ttest_ind(group_1, group_2)
+if p_val < 0.05:
+    print("Є статистично значуща різниця між витратами на їжу в сім’ях з однією та двома дітьми")
+else:
+    print("Немає статистично значущої різниці між витратами на їжу в сім’ях з однією та двома дітьми")
