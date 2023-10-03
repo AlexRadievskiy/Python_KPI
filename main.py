@@ -1,34 +1,46 @@
 import pandas as pd
-from scipy import stats
 
 # Завантаження даних
-data = pd.read_csv('data/Budget.csv')
+data = pd.read_csv('data/penguins.csv')
 
-# 1. Середній вік та середньоквадратичне відхилення найстаршого в сім’ї
-max_age = data['age'].max()
-max_age_group = data[data['age'] == max_age]
-mean_age = max_age_group['age'].mean()
-std_age = max_age_group['age'].std()
+# Виведення інформації про набір даних
+print(data.info())
 
-print(f"Середній вік: {mean_age}, Середньоквадратичне відхилення: {std_age}")
+# Виведення основних статистичних характеристик
+print(data.describe())
 
-# 2. Перевірка нормальності розподілу витрат на одежу
-w, p_value = stats.shapiro(data['wcloth'])
-if p_value > 0.05:
-    print("Витрати на одежу розподілені нормально")
-else:
-    print("Витрати на одежу не розподілені нормально")
+# Визначення типів ознак
+print(data.dtypes)
 
-# 3. Зв’язок між кількістю дітей і витратами на алкоголь
-correlation, _ = stats.pearsonr(data['children'], data['walc'])
-print(f"Кореляція між кількістю дітей і витратами на алкоголь: {correlation}")
+# Копія частини даних
+subset_data = data.iloc[10:20].copy()
 
-# 4. Порівняння витрат на їжу в сім’ях з однією та двома дітьми
-group_1 = data[data['children'] == 1]['wfood']
-group_2 = data[data['children'] == 2]['wfood']
+# Встановлення нових індексів і стовпців
+subset_data.index = [f'new_index_{i}' for i in range(10)]
+subset_data.columns = [f'new_col_{col}' for col in subset_data.columns]
 
-t_stat, p_val = stats.ttest_ind(group_1, group_2)
-if p_val < 0.05:
-    print("Є статистично значуща різниця між витратами на їжу в сім’ях з однією та двома дітьми")
-else:
-    print("Немає статистично значущої різниці між витратами на їжу в сім’ях з однією та двома дітьми")
+# Додавання нового рядка
+new_row = pd.DataFrame({
+    'new_col_species': ['New_Species'],
+    'new_col_island': ['New_Island'],
+    # ... для інших стовпців
+}, index=['new_index_10'])
+
+subset_data = pd.concat([subset_data, new_row])
+
+# а) Кількість самців і самок на кожному з островів
+sex_count_per_island = data.groupby('island')['sex'].value_counts()
+print(sex_count_per_island)
+
+# б) Самці Аделі, що мають масу понад 3 кг
+adelie_males_over_3kg = data[(data['species'] == 'Adelie') & (data['sex'] == 'Male') & (data['body_mass_g'] > 3000)]
+print(adelie_males_over_3kg)
+
+# в) Додавання стовпця: чи перевищує глибина дзьобу половину довжини дзьобу
+data['beak_depth_gt_half_length'] = data['culmen_length_mm'] / 2 < data['flipper_length_mm']
+print(data[['culmen_length_mm', 'flipper_length_mm', 'beak_depth_gt_half_length']])
+
+# г) Додавання стовпця: середня вага пінгвінів даного виду
+mean_weight_per_species = data.groupby('species')['body_mass_g'].mean()
+data['mean_weight_per_species'] = data['species'].map(mean_weight_per_species)
+print(data[['species', 'body_mass_g', 'mean_weight_per_species']])
