@@ -1,46 +1,67 @@
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 # Завантаження даних
-data = pd.read_csv('data/penguins.csv')
+data = pd.read_csv('data/StudentsPerformance.csv')
 
-# Виведення інформації про набір даних
-print(data.info())
+# Завдання 1
+# а) Кількість учнів кожної раси/етносу
+plt.figure(figsize=(10, 6))
+sns.countplot(data=data, x='race/ethnicity')
+plt.title('Кількість учнів кожної раси/етносу')
+plt.xlabel('Раса/Етнос')
+plt.ylabel('Кількість учнів')
+plt.show()
 
-# Виведення основних статистичних характеристик
-print(data.describe())
+# б) Максимальні бали за математику у учнів кожної раси/етносу
+max_scores = data.groupby('race/ethnicity')['math score'].max()
+max_scores.plot(kind='bar', figsize=(10, 6))
+plt.title('Максимальні бали за математику')
+plt.xlabel('Раса/Етнос')
+plt.ylabel('Максимальні бали')
+plt.show()
 
-# Визначення типів ознак
-print(data.dtypes)
+# в) Середні бали за письмо у учнів кожної раси/етносу з розподілом за статтю
+plt.figure(figsize=(12, 6))
+sns.barplot(x='race/ethnicity', y='writing score', hue='gender', data=data, errorbar=None)
+plt.title('Середні бали за письмо з розподілом за статтю')
+plt.xlabel('Раса/Етнос')
+plt.ylabel('Середні бали')
+plt.show()
 
-# Копія частини даних
-subset_data = data.iloc[10:20].copy()
+# Завдання 2
+# Гістограма балів за читання
+plt.figure(figsize=(10, 6))
+sns.histplot(data=data, x='reading score', kde=True, hue='test preparation course', multiple="stack")
+plt.title('Гістограма балів за читання')
+plt.xlabel('Бали за читання')
+plt.ylabel('Кількість учнів')
+plt.show()
 
-# Встановлення нових індексів і стовпців
-subset_data.index = [f'new_index_{i}' for i in range(10)]
-subset_data.columns = [f'new_col_{col}' for col in subset_data.columns]
+# Завдання 3
+# Діаграма розмаху балів за математику
+plt.figure(figsize=(12, 6))
+sns.boxplot(x='parental level of education', y='math score', data=data)
+plt.title('Діаграма розмаху балів за математику')
+plt.xlabel('Рівень освіти батьків')
+plt.ylabel('Бали за математику')
+plt.xticks(rotation=45)
+plt.show()
 
-# Додавання нового рядка
-new_row = pd.DataFrame({
-    'new_col_species': ['New_Species'],
-    'new_col_island': ['New_Island'],
-    # ... для інших стовпців
-}, index=['new_index_10'])
+# Завдання 4
+# а) Діаграми розсіювання
+sns.jointplot(x='reading score', y='writing score', data=data, kind='scatter')
+plt.suptitle('Залежність між балами за читання і письмо')
+plt.show()
 
-subset_data = pd.concat([subset_data, new_row])
+sns.jointplot(x='math score', y='reading score', data=data, kind='scatter')
+plt.suptitle('Залежність між балами за математику і читання')
+plt.show()
 
-# а) Кількість самців і самок на кожному з островів
-sex_count_per_island = data.groupby('island')['sex'].value_counts()
-print(sex_count_per_island)
+# б) Коефіцієнт кореляції
+corr_reading_writing = data['reading score'].corr(data['writing score'])
+print(f"Коефіцієнт кореляції між балами за читання і письмо: {corr_reading_writing}")
 
-# б) Самці Аделі, що мають масу понад 3 кг
-adelie_males_over_3kg = data[(data['species'] == 'Adelie') & (data['sex'] == 'Male') & (data['body_mass_g'] > 3000)]
-print(adelie_males_over_3kg)
-
-# в) Додавання стовпця: чи перевищує глибина дзьобу половину довжини дзьобу
-data['beak_depth_gt_half_length'] = data['culmen_length_mm'] / 2 < data['flipper_length_mm']
-print(data[['culmen_length_mm', 'flipper_length_mm', 'beak_depth_gt_half_length']])
-
-# г) Додавання стовпця: середня вага пінгвінів даного виду
-mean_weight_per_species = data.groupby('species')['body_mass_g'].mean()
-data['mean_weight_per_species'] = data['species'].map(mean_weight_per_species)
-print(data[['species', 'body_mass_g', 'mean_weight_per_species']])
+corr_math_reading = data['math score'].corr(data['reading score'])
+print(f"Коефіцієнт кореляції між балами за математику і читання: {corr_math_reading}")
