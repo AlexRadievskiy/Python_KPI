@@ -1,0 +1,19 @@
+Index: main.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>import pandas as pd\r\nfrom scipy import stats\r\n\r\n# Завантаження даних\r\ndata = pd.read_csv('data/Budget.csv')\r\n\r\n# 1. Середній вік та середньоквадратичне відхилення найстаршого в сім’ї\r\nmax_age = data['age'].max()\r\nmax_age_group = data[data['age'] == max_age]\r\nmean_age = max_age_group['age'].mean()\r\nstd_age = max_age_group['age'].std()\r\n\r\nprint(f\"Середній вік: {mean_age}, Середньоквадратичне відхилення: {std_age}\")\r\n\r\n# 2. Перевірка нормальності розподілу витрат на одежу\r\nw, p_value = stats.shapiro(data['wcloth'])\r\nif p_value > 0.05:\r\n    print(\"Витрати на одежу розподілені нормально\")\r\nelse:\r\n    print(\"Витрати на одежу не розподілені нормально\")\r\n\r\n# 3. Зв’язок між кількістю дітей і витратами на алкоголь\r\ncorrelation, _ = stats.pearsonr(data['children'], data['walc'])\r\nprint(f\"Кореляція між кількістю дітей і витратами на алкоголь: {correlation}\")\r\n\r\n# 4. Порівняння витрат на їжу в сім’ях з однією та двома дітьми\r\ngroup_1 = data[data['children'] == 1]['wfood']\r\ngroup_2 = data[data['children'] == 2]['wfood']\r\n\r\nt_stat, p_val = stats.ttest_ind(group_1, group_2)\r\nif p_val < 0.05:\r\n    print(\"Є статистично значуща різниця між витратами на їжу в сім’ях з однією та двома дітьми\")\r\nelse:\r\n    print(\"Немає статистично значущої різниці між витратами на їжу в сім’ях з однією та двома дітьми\")\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/main.py b/main.py
+--- a/main.py	
++++ b/main.py	
+@@ -27,7 +27,7 @@
+ group_1 = data[data['children'] == 1]['wfood']
+ group_2 = data[data['children'] == 2]['wfood']
+ 
+-t_stat, p_val = stats.ttest_ind(group_1, group_2)
++t_stat, p_val = stats.ttest_ind(group_1, group_2, alternative = 'less')
+ if p_val < 0.05:
+     print("Є статистично значуща різниця між витратами на їжу в сім’ях з однією та двома дітьми")
+ else:
