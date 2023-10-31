@@ -1,67 +1,36 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 
-# Завантаження даних
-data = pd.read_csv('data/StudentsPerformance.csv')
+# 1. Завантаження даних
+data = pd.read_csv('data/Amazon.csv')
 
-# Завдання 1
-# а) Кількість учнів кожної раси/етносу
+# 2. Перетворення стовпця дати
+data['Date'] = pd.to_datetime(data['Date'])
+
+# Встановлення дати як індексу для легшого вибору даних
+data.set_index('Date', inplace=True)
+
+# 3. Фільтрація даних та побудова графіків
+# а) загальний графік зміни ціни на час закриття біржі
 plt.figure(figsize=(10, 6))
-sns.countplot(data=data, x='race/ethnicity')
-plt.title('Кількість учнів кожної раси/етносу')
-plt.xlabel('Раса/Етнос')
-plt.ylabel('Кількість учнів')
+plt.plot(data['Close'], label='Ціна закриття')
+plt.title('Зміна ціни акцій Amazon')
+plt.xlabel('Дата')
+plt.ylabel('Ціна закриття')
+plt.legend()
 plt.show()
 
-# б) Максимальні бали за математику у учнів кожної раси/етносу
-max_scores = data.groupby('race/ethnicity')['math score'].max()
-max_scores.plot(kind='bar', figsize=(10, 6))
-plt.title('Максимальні бали за математику')
-plt.xlabel('Раса/Етнос')
-plt.ylabel('Максимальні бали')
-plt.show()
-
-# в) Середні бали за письмо у учнів кожної раси/етносу з розподілом за статтю
-plt.figure(figsize=(12, 6))
-sns.barplot(x='race/ethnicity', y='writing score', hue='gender', data=data, errorbar=None)
-plt.title('Середні бали за письмо з розподілом за статтю')
-plt.xlabel('Раса/Етнос')
-plt.ylabel('Середні бали')
-plt.show()
-
-# Завдання 2
-# Гістограма балів за читання
+# б) графік за 2018 рік
+data_2018 = data['2018-01-01':'2018-12-31']
 plt.figure(figsize=(10, 6))
-sns.histplot(data=data, x='reading score', kde=True, hue='test preparation course', multiple="stack")
-plt.title('Гістограма балів за читання')
-plt.xlabel('Бали за читання')
-plt.ylabel('Кількість учнів')
+plt.plot(data_2018['Close'], label='Ціна закриття за 2018 рік')
+plt.title('Зміна ціни акцій Amazon у 2018 році')
+plt.xlabel('Дата')
+plt.ylabel('Ціна закриття')
+plt.legend()
 plt.show()
 
-# Завдання 3
-# Діаграма розмаху балів за математику
-plt.figure(figsize=(12, 6))
-sns.boxplot(x='parental level of education', y='math score', data=data)
-plt.title('Діаграма розмаху балів за математику')
-plt.xlabel('Рівень освіти батьків')
-plt.ylabel('Бали за математику')
-plt.xticks(rotation=45)
-plt.show()
-
-# Завдання 4
-# а) Діаграми розсіювання
-sns.jointplot(x='reading score', y='writing score', data=data, kind='scatter')
-plt.suptitle('Залежність між балами за читання і письмо')
-plt.show()
-
-sns.jointplot(x='math score', y='reading score', data=data, kind='scatter')
-plt.suptitle('Залежність між балами за математику і читання')
-plt.show()
-
-# б) Коефіцієнт кореляції
-corr_reading_writing = data['reading score'].corr(data['writing score'])
-print(f"Коефіцієнт кореляції між балами за читання і письмо: {corr_reading_writing}")
-
-corr_math_reading = data['math score'].corr(data['reading score'])
-print(f"Коефіцієнт кореляції між балами за математику і читання: {corr_math_reading}")
+# 4. Обчислення максимальних значень та інші статистичні операції
+# Максимальне значення за 2016 рік
+max_price_2016 = data['2016-01-01':'2016-12-31']['High'].max()
+print(f"Максимальна ціна за день у 2016 році: {max_price_2016}")
