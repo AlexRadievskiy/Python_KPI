@@ -1,36 +1,69 @@
 import pandas as pd
 
-# 1. Читання файлу
-data = pd.read_json('data/Version 5.json')
+# Налаштування відображення DataFrame
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+
+def remove_rare_values(df, column_name, threshold=2):
+    value_counts = df[column_name].value_counts()
+    to_remove = value_counts[value_counts < threshold].index
+    df = df[~df[column_name].isin(to_remove)]
+    return df
+
+# Читання файлу JSON
+file_path = 'data/Version 5.json'
+try:
+    df = pd.read_json(file_path)
+except ValueError as e:
+    print(f"Помилка при читанні файлу: {e}")
 
 # Зміна назв стовпців
-data.columns = ['ID', 'Warehouse_block', 'Mode_of_Shipment', 'Customer_care_calls', 'Customer_rating',
-                'Cost_of_the_Product', 'Prior_purchases', 'Product_importance', 'Gender', 'Discount_offered',
-                'Weight_in_gms', 'Reached_on_Time']
+new_column_names = {
+    "ID": "ID",
+    "Warehouse_block": "WarehouseBlock",
+    "Mode_of_Shipment": "ShipmentMode",
+    "Customer_care_calls": "CustomerCareCalls",
+    "Customer_rating": "CustomerRating",
+    "Cost_of_the_Product": "ProductCost",
+    "Prior_purchases": "PriorPurchases",
+    "Product_importance": "ProductImportance",
+    "Gender": "Gender",
+    "Discount_offered": "DiscountOffered",
+    "Weight_in_gms": "WeightInGms",
+    "Reached.on.Time_Y.N": "ReachedOnTime"
+}
+df.rename(columns=new_column_names, inplace=True)
 
-# 2. Ідентифікація та вирішення проблем з даними
+# Видалення рідкісних значень
+df = remove_rare_values(df, 'ShipmentMode')
+df = remove_rare_values(df, 'ProductImportance')
 
-# Перевірка на дублікати
-duplicates = data.duplicated()
-if duplicates.sum() > 0:
-    data = data.drop_duplicates()
+# Видалення всіх значень у 'Gender', крім 'M' та 'F'
+df = df[df['Gender'].isin(['M', 'F'])]
 
-# Перевірка на відсутні значення
-missing_values = data.isnull().sum()
-print("Відсутні значення:\n", missing_values)
+# Виявлення та виправлення проблем з даними
+if df.isnull().values.any():
+    print("Виявлено відсутні значення")
+    df.ffill(inplace=True)
 
-# Заповнення відсутніх значень
-if missing_values['Customer_care_calls'] > 0:
-    mean_value = data['Customer_care_calls'].mean()
-    data['Customer_care_calls'].fillna(mean_value, inplace=True)
+if df.duplicated().any():
+    print("Виявлено дублікати")
+    df.drop_duplicates(inplace=True)
 
-# Перевірка статистичних даних
-print("\nСтатистичні дані:\n", data.describe())
+# Видалення рядків, де значення у 'WarehouseBlock' має більше ніж один символ
+df = df[df['WarehouseBlock'].apply(lambda x: len(x) == 1)]
 
-# Перевірка унікальних значень категоріальних змінних
-categorical_columns = ['Warehouse_block', 'Mode_of_Shipment', 'Product_importance', 'Gender', 'Reached_on_Time']
-for column in categorical_columns:
-    print(f"\nУнікальні значення для {column}:\n", data[column].value_counts())
+# Виведення результатів
+print(df)
 
-# Виведення перших 5 рядків даних для перевірки
-print("\nПерші 5 рядків даних:\n", data.head())
+# Статистичний аналіз даних
+print(df.describe())
+
+# Видалення рідкісних значень з порогом 2
+df = remove_rare_values(df, 'ShipmentMode', threshold=2)
+
+# Аналіз категоріальних змінних
+categorical_columns = ['WarehouseBlock', 'ShipmentMode', 'ProductImportance', 'Gender']
+for col in categorical_columns:
+    print(f"Унікальні значення для {col}:")
+    print(df[col].value_counts())
