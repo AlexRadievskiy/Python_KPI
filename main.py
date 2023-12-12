@@ -1,69 +1,52 @@
 import pandas as pd
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.ensemble import RandomForestClassifier
 
-# Налаштування відображення DataFrame
-pd.set_option('display.max_rows', None)
-pd.set_option('display.max_columns', None)
+# Завантаження даних
+df = pd.read_csv('data/Stars.csv')
 
-def remove_rare_values(df, column_name, threshold=2):
-    value_counts = df[column_name].value_counts()
-    to_remove = value_counts[value_counts < threshold].index
-    df = df[~df[column_name].isin(to_remove)]
-    return df
+# Визначення цільової змінної та незалежних змінних
+y = df['Type'].apply(lambda x: 1 if x in [0, 1] else 0)
+X = df.drop(columns=['Type'])
 
-# Читання файлу JSON
-file_path = 'data/Version 5.json'
-try:
-    df = pd.read_json(file_path)
-except ValueError as e:
-    print(f"Помилка при читанні файлу: {e}")
+# Кодування категоріальних змінних
+X = pd.get_dummies(X)
 
-# Зміна назв стовпців
-new_column_names = {
-    "ID": "ID",
-    "Warehouse_block": "WarehouseBlock",
-    "Mode_of_Shipment": "ShipmentMode",
-    "Customer_care_calls": "CustomerCareCalls",
-    "Customer_rating": "CustomerRating",
-    "Cost_of_the_Product": "ProductCost",
-    "Prior_purchases": "PriorPurchases",
-    "Product_importance": "ProductImportance",
-    "Gender": "Gender",
-    "Discount_offered": "DiscountOffered",
-    "Weight_in_gms": "WeightInGms",
-    "Reached.on.Time_Y.N": "ReachedOnTime"
+# Розділення даних на навчальні та тестові набори
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+# Створення та навчання моделі логістичної регресії
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('classifier', LogisticRegression(random_state=0))
+])
+pipeline.fit(X_train, y_train)
+
+# Оцінка моделі
+predictions = pipeline.predict(X_test)
+print("Класифікаційний звіт для логістичної регресії:")
+print(classification_report(y_test, predictions))
+print("Матриця невідповідностей:")
+print(confusion_matrix(y_test, predictions))
+
+# Покращення моделі за допомогою випадкового лісу
+rf = RandomForestClassifier(random_state=0)
+param_grid = {
+    'n_estimators': [100, 200],
+    'max_depth': [4, 6, 8],
+    'min_samples_leaf': [1, 2, 4]
 }
-df.rename(columns=new_column_names, inplace=True)
+grid_search = GridSearchCV(rf, param_grid, cv=5, scoring='accuracy')
+grid_search.fit(X_train, y_train)
 
-# Видалення рідкісних значень
-df = remove_rare_values(df, 'ShipmentMode')
-df = remove_rare_values(df, 'ProductImportance')
-
-# Видалення всіх значень у 'Gender', крім 'M' та 'F'
-df = df[df['Gender'].isin(['M', 'F'])]
-
-# Виявлення та виправлення проблем з даними
-if df.isnull().values.any():
-    print("Виявлено відсутні значення")
-    df.ffill(inplace=True)
-
-if df.duplicated().any():
-    print("Виявлено дублікати")
-    df.drop_duplicates(inplace=True)
-
-# Видалення рядків, де значення у 'WarehouseBlock' має більше ніж один символ
-df = df[df['WarehouseBlock'].apply(lambda x: len(x) == 1)]
-
-# Виведення результатів
-print(df)
-
-# Статистичний аналіз даних
-print(df.describe())
-
-# Видалення рідкісних значень з порогом 2
-df = remove_rare_values(df, 'ShipmentMode', threshold=2)
-
-# Аналіз категоріальних змінних
-categorical_columns = ['WarehouseBlock', 'ShipmentMode', 'ProductImportance', 'Gender']
-for col in categorical_columns:
-    print(f"Унікальні значення для {col}:")
-    print(df[col].value_counts())
+# Оцінка покращеної моделі
+best_rf = grid_search.best_estimator_
+rf_predictions = best_rf.predict(X_test)
+print("Класифікаційний звіт для випадкового лісу:")
+print(classification_report(y_test, rf_predictions))
+print("Матриця невідповідностей:")
+print(confusion_matrix(y_test, rf_predictions))
